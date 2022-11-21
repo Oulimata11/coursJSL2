@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title> </title>
+</head>
+<body>
+                <!----------Formulaire----------->
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header bg-info text-black">
+                Service
+            </div>
+            <div class="card-body">
+                <form action=" " method="post" id="form1">
+                    <div class="form-group">
+                        <label for="">Libellé</label>
+                        <input type="text" name="libelle" id="libelle" class="form-control">
+                    </div>
+                    <input type="submit" class="btn btn-primary mt-3" value="save" name="save" id="save">
+                    <input type="hidden" name="idd" id="idd" value="0">
+                </form>
+            </div>
+        </div>
+    </div>
+          <!--------Tableau------>
+    <div class="card-body">
+        <table class="table" id="table">
+            <tr>
+                <th>Id</th>
+                <th>Libellé</th>
+            </tr>
+        </table>
+    </div> 
+  
+<script type="text/javascript"> 
+      var table =document.getElementById('table')
+         const form = document.getElementById('form1')
+//---------------------------------------------------------
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET","ListeService.php",true);
+        xhttp.setRequestHeader('Content-type','application/x-www-form-urlencoded')
+        xhttp.onreadystatechange=function(){
+            if(this.readyState == 4 && this.status == 200){
+                data = JSON.parse(this.responseText)
+                for(i = 0; i< data.length;i++){
+                    addRow(data[i])
+                }
+            }
+        };
+        xhttp.send()
+//--------------------------------------------------------------
+        var rowToUpdate;
+        function editPersonne(btn)
+        {
+            rowToUpdate=btn.parentNode.parentNode
+            let cells=rowToUpdate.childNodes
+            document.getElementById('libelle').value=cells[1].innerHTML
+            document.getElementById('save').value='update'
+            
+        }
+//-----------------------------------------------------------
+        function deletePersonne(btn){
+           rowToUpdate = btn.parentNode.parentNode
+           let IdService = rowToUpdate.childNodes[0].innerHTML 
+           rowToUpdate.remove()
+           xhttp = new XMLHttpRequest();
+           xhttp.onreadystatechange=function(){
+                if(this.readyState == 4 && this.status == 200){
+                    console.log("ok!")
+                }
+            };
+            xhttp.onerror = function(error){
+                console.log(error)
+            }
+            xhttp.open("GET","deleteService.php?IdService="+IdService,true);
+            xhttp.send()
+        }
+//---------------------------------------------------------------
+        function addRow(rowData)
+        {
+            row=table.insertRow()
+    
+            cellId=row.insertCell()
+            cellId.innerHTML=rowData.IdService
+
+            cellLibelle=row.insertCell()
+            cellLibelle.innerHTML=rowData.Libelle
+
+            cellUpdate=row.insertCell()
+            cellUpdate.innerHTML='<button class="btn btn-primary" type="button" onclick="editPersonne(this)">update</button>'
+            cellDelete=row.insertCell()
+            cellDelete.innerHTML='<button class="btn btn-danger" type="button" onclick="deletePersonne(this)">delete</button>'
+        }
+        document.querySelector('#save').addEventListener("click", function (event)
+        { //afficher les données saisis dans le formulaire dans un tableau 
+            event.preventDefault() //ne pas poster le formulaire
+                if(document.getElementById('save').value=='save'){
+                    xhttp = new XMLHttpRequest();
+                    xhttp.onreadystatechange= function() {
+                        console.log(this.status)
+                            if(this.readyState == 4 && this.status == 200){
+                                let ligne={
+                                    'IdService':this.responseText,
+                                    'Libelle':form.elements['libelle'].value,
+                                }
+                                addRow(ligne)
+                                clearFields()
+                            }
+                    };
+                    xhttp.onerror = function(error){
+                        console.log(error)
+                    }
+                    xhttp.open("POST","AddService.php",true);
+                    xhttp.send(new FormData (form))
+        
+                }  else {
+                    rowToUpdate.childNodes[1].innerHTML=document.getElementById('libelle').value
+                    xhttp = new XMLHttpRequest();
+                    xhttp.onreadystatechange=function(){
+                        if(this.readyState == 4 && this.status == 200){
+                            console.log('ok')
+                        }
+                    }
+                    xhttp.onerror = function(error){
+                        console.log(error)
+                    }
+                    xhttp.open("POST","AddService.php",true);
+                    xhttp.send(new FormData(form))
+                }
+                document.getElementById('idd').value="0"
+                document.getElementById('save').value="save"
+
+        })
+        function clearFields(){
+            document.getElementById('libelle').value=''
+        }
+
+</script>
+</body>
+</html>

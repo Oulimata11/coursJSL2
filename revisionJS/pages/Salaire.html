@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title></title>
+    </head>
+<body>
+ <div class="container mt-3">
+        <form id="form1" method="post" action="">
+            <div class="mb-3">
+                <label for="nom" class="form-label">Matricule</label>
+                <input type="text" name="matricule" class="form-control" id="matricule" required/>
+            </div>
+            <div class="mb-3">
+                <label for="prenom" class="form-label">Prenom</label>
+                <input type="text" name="prenom" class="form-control" id="prenom" required/>
+                
+            </div> 
+            <div class="mb-3">
+                <label for="date" class="form-label">Nom</label>
+                <input type="text" name="nom" class="form-control" id="nom" required />
+            </div>
+            <div class="mb-3">
+                <label for="form-labe" >Naissance</label>
+                <input type="date" name="naissance" class="form-control" id="naissance" required/>
+            </div>
+            <div class="mb-3">
+                <label for="form-labe" >Salaire</label>
+                <input type="text" name="salaire" class="form-control" id="salaire" required/>
+            </div>  
+            <div class="mb-3">
+                <label for="form-labe" >Service</label>
+                <select id="IdService "class="form-control" required/> 
+                  <option value="Selectionne le service"> </option>
+                </select>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-block">
+                <input type="submit" class="btn btn-primary" value="save" name="save" id="save"/>
+                
+            </div>
+            <input type="hidden" id="idd" name="idd" value="0">
+       </form><br><br>
+                   <!--------Tableau------>
+            <div class="card-body">
+                <table class="table" id="table">
+                    <tr>
+                    <th>Id</th>
+                    <th>Matricule</th>
+                    <th>Prenom</th>
+                    <th>Nom</th>
+                    <th>Naissance</th>
+                    <th>Salaire</th>
+                    <th>IdService</th>
+
+                    </tr>
+                </table>
+            </div>  
+    </div>
+    <script type="text/javascript">
+        var table =document.getElementById('table')
+        const form = document.getElementById('form1')
+         //----insertion des services a partir du salaire----
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET","ListeService.php",true);
+        xhttp.setRequestHeader('Content-type','application/x-www-form-urlencoded')
+        xhttp.onreadystatechange=function(){
+            if(this.readyState == 4 && this.status == 200){
+                data = JSON.parse(this.responseText)
+                select= document.getElementById('IdService');
+                for(i = 0; i< data.length;i++)
+                {
+                    var opt =document.createElement('option');
+                    opt.value= data[i].IdService;
+                    opt.innerHTML= data[i].Libelle;
+                    select.appendChild(opt);
+                }
+            }
+        };
+        xhttp.send()
+        
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET","ListeSalaire.php",true);
+        xhttp.setRequestHeader('Content-type','application/x-www-form-urlencoded')
+        xhttp.onreadystatechange=function(){
+            if(this.readyState == 4 && this.status == 200){
+                data = JSON.parse(this.responseText)
+                for(i = 0; i< data.length;i++){
+                    addRow(data[i])
+                }
+            }
+        };
+        xhttp.send
+
+        function addRow(rowData)
+        {
+            row=table.insertRow()
+    
+            cellId=row.insertCell()
+            cellId.innerHTML=rowData.IdSalaire
+
+            cellMatricule=row.insertCell()
+            cellMatricule.innerHTML=rowData.Matricule
+
+            cellPrenom=row.insertCell()
+            cellPrenom.innerHTML=rowData.Prenom
+
+            cellNom=row.insertCell()
+            cellNom.innerHTML=rowData.Nom
+
+            cellNaissance=row.insertCell()
+            cellNaissance.innerHTML=rowData.Naissance
+
+            cellSalaire=row.insertCell()
+            cellSalaire.innerHTML=rowData.Salaire
+
+            cellIdService=row.insertCell()
+            cellIdService.innerHTML=rowData.Libelle
+
+            cellUpdate=row.insertCell()
+            cellUpdate.innerHTML='<button class="btn btn-primary" type="button" onclick="editPersonne(this)">update</button>'
+            cellDelete=row.insertCell()
+            cellDelete.innerHTML='<button class="btn btn-danger" type="button" onclick="deletePersonne(this)">delete</button>'
+        }
+
+        var rowToUpdate;
+        function editPersonne(btn){
+            rowToUpdate=btn.parentNode.parentNode
+            let cells=rowToUpdate.childNodes
+            document.getElementById('matricule').value=cells[1].innerHTML
+            document.getElementById('prenom').value=cells[2].innerHTML
+            document.getElementById('nom').value=cells[3].innerHTML
+            document.getElementById('naissance').value=cells[4].innerHTML
+            document.getElementById('salaire').value=cells[5].innerHTML
+            document.getElementById('IdService').value=cells[6].innerHTML
+            document.getElementById('save').value='update'
+        }
+
+        function deletePersonne(btn){
+           rowToUpdate = btn.parentNode.parentNode
+           let IdSalaire = rowToUpdate.childNodes[0].innerHTML 
+           rowToUpdate.remove()
+           xhttp = new XMLHttpRequest();
+           xhttp.onreadystatechange=function(){
+                if(this.readyState == 4 && this.status == 200){
+                    console.log("ok!")
+                }
+            };
+            xhttp.onerror = function(error){
+                console.log(error)
+            }
+            xhttp.open("GET","deleteSalaire.php?Id="+Id,true);
+            xhttp.send()
+        }
+
+        document.querySelector("#save").addEventListener("click",function(event){
+            
+            event.preventDefault() //ne pas poster le formulaire
+            if(document.getElementById('save').value=='save'){
+                xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange=function(){
+                    console.log(this.status)
+                    if(this.readyState == 4 && this.status == 200){
+                        
+                        let ligne={
+                        'IdSalaire':this.responseText,
+                        'Matricule':form.elements['matricule'].value,
+                        'Prenom':form.elements['prenom'].value,
+                        'Nom':form.elements['nom'].value,
+                        'Naissance':form.elements['naissance'].value,
+                        'Salaire':form.elements['salaire'].value,
+                        'IdService':form.elements['IdService'].value
+                        }
+                        addRow(ligne)
+                        clearFields()
+                    }
+                };
+                xhttp.onerror = function(error){
+                    console.log(error)
+                }
+                xhttp.open("POST","AddSalaire.php",true);
+                xhttp.send(new FormData(form))
+                
+            }else{
+                rowToUpdate.childNodes[1].innerHTML=document.getElementById('matricule').value
+                rowToUpdate.childNodes[2].innerHTML=document.getElementById('prenom').value
+                rowToUpdate.childNodes[3].innerHTML=document.getElementById('nom').value
+                rowToUpdate.childNodes[4].innerHTML=document.getElementById('naissance').value
+                rowToUpdate.childNodes[5].innerHTML=document.getElementById('salaire').value
+                rowToUpdate.childNodes[6].innerHTML=document.getElementById('IdService').value
+                xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange=function(){
+                    if(this.readyState == 4 && this.status == 200){
+                        clearFields()
+                    }
+                };
+                xhttp.onerror = function(error){
+                    console.log(error)
+                }
+                xhttp.open("POST","AddSalaire.php",true);  
+                xhttp.send(new FormData(form))
+               
+            }
+            document.getElementById('idd').value="0"
+            document.getElementById('save').value="save"
+        })
+
+        function clearFields(){
+            document.getElementById('matricule').value=''
+            document.getElementById('prenom').value=''
+            document.getElementById('nom').value=''
+            document.getElementById('naissance').value=''
+            document.getElementById('salaire').value=''
+            document.getElementById('IdService').value=''
+        }
+
+    </script>
+
+</body>
+</html>

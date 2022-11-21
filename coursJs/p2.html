@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title></title>
+    </head>
+<body>
+ <div class="container mt-3">
+        <form id="form1" method="post" action="">
+            <div class="mb-3">
+                <label for="nom" class="form-label">*NOM</label>
+                <input type="text" name="nom" class="form-control" id="nom" required/>
+            </div>
+            <div class="mb-3">
+                <label for="prenom" class="form-label">*PRENOM</label>
+                <input type="text" name="prenom" class="form-control" id="prenom" required/>
+                
+            </div> 
+            <div class="mb-3">
+                <label for="date" class="form-label">*MAIL</label>
+                <input type="mail" name="mail" class="form-control" id="mail" required />
+            </div>
+            <div class="mb-3">
+                <label for="form-labe" >*AGE</label>
+                <input type="number" name="age" class="form-control" id="age" required/>
+            </div>    
+            
+            <div class="d-grid gap-2 d-md-block">
+                <input type="submit" class="btn btn-primary" value="save" name="save" id="save"/>
+                <input type="submit" class="btn btn-danger" value="rest" name="rest" id="reset"/>
+                
+            </div>
+            <input type="hidden" id="id" name="id" value="0">
+       </form><br><br>
+          <div>
+            <table class="table table-striped table-hover" id="tab">
+                <tr>
+                    <td align = "center" ><h2>*id</h2></td>
+                    <td align = "center"><h2>nom</h2></td>
+                    <td align = "center"><h2>prenom</h2></td>
+                    <td align = "center"><h2>Email</h2></td>
+                    <td align = "center"><h2>Age</h2></td>
+                </tr>
+                
+            </table>    
+          </div>
+       </div>
+    </div>
+    <script type="text/javascript">
+        const form = document.getElementById('form1')
+        var table =document.getElementById('tab')
+        //-----------------------------------------------------------
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET","personneListe.php",true);
+        xhttp.setRequestHeader('Content-type','application/x-www-form-urlencoded')
+        xhttp.onreadystatechange=function(){
+            if(this.readyState == 4 && this.status == 200){
+                data = JSON.parse(this.responseText)
+                for(i = 0; i< data.length;i++){
+                    addRow(data[i])
+                    //console.log(data[i])
+                }
+            }
+        };
+        xhttp.send()
+        //-----------------------------------------------------------
+    
+        function addRow(rowData){
+            row=table.insertRow()
+            cellId=row.insertCell()
+            cellId.innerHTML=rowData.id
+
+            cellNom=row.insertCell()
+            cellNom.innerHTML=rowData.nom 
+
+            cellPrenom=row.insertCell()
+            cellPrenom.innerHTML=rowData.prenom 
+
+            cellMail=row.insertCell()
+            cellMail.innerHTML=rowData.email 
+
+            cellAge=row.insertCell()
+            cellAge.innerHTML=rowData.age
+            
+            cellUpdate=row.insertCell()
+            cellUpdate.innerHTML='<button class="btn btn-primary" type="button" onclick="editPersonne(this)">update</button>'
+            cellDelete=row.insertCell()
+            cellDelete.innerHTML='<button class="btn btn-danger" type="button" onclick="deletePersonne(this)">delete</button>'
+
+
+        }
+        document.querySelector("#save").addEventListener("click",function(event){
+            
+            event.preventDefault() //ne pas poster le formulaire
+            if(document.getElementById('save').value=='save'){
+        
+                xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange=function(){
+                    console.log(this.status)
+                    if(this.readyState == 4 && this.status == 200){
+                        
+                        let ligne={
+                        'id':this.responseText,
+                        'nom':form.elements['nom'].value,
+                        'prenom':form.elements['prenom'].value,
+                        'age':form.elements['age'].value,
+                        'mail':form.elements['mail'].value,
+                        'age':form.elements['age'].value
+                        }
+                        addRow(ligne)
+                        clearFields()
+                    }
+                };
+                xhttp.onerror = function(error){
+                    console.log(error)
+                }
+                xhttp.open("POST","personneAdd.php",true);
+                xhttp.send(new FormData(form))
+                
+            }else{
+                rowToUpdate.childNodes[1].innerHTML=document.getElementById('nom').value
+                rowToUpdate.childNodes[2].innerHTML=document.getElementById('prenom').value
+                rowToUpdate.childNodes[3].innerHTML=document.getElementById('mail').value
+                rowToUpdate.childNodes[4].innerHTML=document.getElementById('age').value
+                xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange=function(){
+                    if(this.readyState == 4 && this.status == 200){
+                        clearFields()
+                    }
+                };
+                xhttp.onerror = function(error){
+                    console.log(error)
+                }
+                xhttp.open("POST","personneAdd.php",true);  
+                xhttp.send(new FormData(form))
+               
+            }
+            document.getElementById('id').value="0"
+
+        })
+        
+        function clearFields(){
+            document.getElementById('nom').value=''
+            document.getElementById('prenom').value=''
+            document.getElementById('mail').value=''
+            document.getElementById('age').value=''
+        }
+        var rowToUpdate;
+        function editPersonne(btn){
+            rowToUpdate=btn.parentNode.parentNode
+            let cells=rowToUpdate.childNodes
+            document.getElementById('nom').value=cells[1].innerHTML
+            document.getElementById('prenom').value=cells[2].innerHTML
+            document.getElementById('mail').value=cells[3].innerHTML
+            document.getElementById('age').value=cells[4].innerHTML
+            document.getElementById('save').value='update'
+            document.getElementById('id').value=cells[0].innerHTML
+        }
+        function deletePersonne(btn){
+           rowToUpdate = btn.parentNode.parentNode
+           let id = rowToUpdate.childNodes[0].innerHTML 
+           rowToUpdate.remove()
+           xhttp = new XMLHttpRequest();
+           xhttp.onreadystatechange=function(){
+                if(this.readyState == 4 && this.status == 200){
+                    console.log("ok!")
+                }
+            };
+            xhttp.onerror = function(error){
+                console.log(error)
+            }
+            xhttp.open("GET","deletePersonne.php?id="+id,true);
+            xhttp.send()
+        }
+        
+     </script>   
+</body>
+
+
+</html>     
